@@ -29,6 +29,7 @@ dependencies {
     implementation "com.jakewharton:butterknife:8.8.1"
     implementation 'com.android.support:support-v4:27.1.0'
     compile 'com.android.support:support-annotations:27.1.0'
+    compile 'com.squareup.picasso:picasso:2.5.2'
     annotationProcessor "com.jakewharton:butterknife-compiler:8.8.1"
     compile 'com.google.android.exoplayer:exoplayer:2.6.1'
     testImplementation 'junit:junit:4.12'

@@ -28,6 +28,7 @@ import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.util.Util;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -82,8 +83,6 @@ public class VideoFragment extends Fragment {
             mVideoUrl = savedInstanceState.getString(URL_STRING_KEY);
         }
         makeFullScreenWhenOnLandscapeOnPhone();
-        if(mVideoUrl!=null){
-        initializePlayer();}
         return rootView;
     }
 
@@ -185,8 +184,43 @@ public class VideoFragment extends Fragment {
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        if (Util.SDK_INT > 23) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (Util.SDK_INT <= 23 || mPlayer == null) {
+            initializePlayer();
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mPlaybackPosition = mPlayer.getCurrentPosition();
+        mPlayWhenReady = mPlayer.getPlayWhenReady();
+        if (Util.SDK_INT <= 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        mPlaybackPosition = mPlayer.getCurrentPosition();
+        mPlayWhenReady = mPlayer.getPlayWhenReady();
+        if (Util.SDK_INT > 23) {
+            releasePlayer();
+        }
+    }
+
+    @Override
     public void onDestroyView() {
-        System.out.println("DESTROY");
         super.onDestroyView();
        releasePlayer();
         mUnbinder.unbind();
@@ -201,8 +235,8 @@ public class VideoFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle currentState) {
-        currentState.putLong(PLAYBACK_POSITION_KEY, mPlayer.getCurrentPosition());
-        currentState.putBoolean(IS_PLAYING_KEY, mPlayer.getPlayWhenReady());
+        currentState.putLong(PLAYBACK_POSITION_KEY, mPlaybackPosition);
+        currentState.putBoolean(IS_PLAYING_KEY, mPlayWhenReady);
         currentState.putBoolean(IS_TWO_PANE_KEY, mIsTwoPane);
         currentState.putString(URL_STRING_KEY, mVideoUrl);
     }

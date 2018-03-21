@@ -27,24 +27,26 @@ import butterknife.ButterKnife;
 public class RecipeActivity extends AppCompatActivity implements StepsFragment.OnFragmentInteractionListener {
 
     public static final String RECIPE_KEY = "recipe_key";
+    public static final String RECIPE_NAME_KEY = "recipe_name_key";
     private static final String SCROLL_POSITION_KEY = "scroll_position_key";
     private static final String STEPS_LIST_KEY = "steps_list_key";
     private static final String INGREDIENTS_LIST_KEY = "ingredients_list_key";
+
     //fragment tags
     private static final String INSTRUCTION_TAG = "instruction_tag";
     private static final String VIDEO_TAG = "video_tag";
+    private static final String THUMBNAIL_TAG = "thumbnail_tag";
 
     @BindView(R.id.scroll_view)
     NestedScrollView mScrollView;
     @BindString(R.string.widget_toast)
-    String mWigetToastString;
-
-
+     String mWidgetToastString;
+    private String mRecipeName;
     private boolean mTwoPane;
     private ArrayList<Step> mSteps;
     private ArrayList<Ingredient> mIngredients;
     private int mScrollYPosition = 0;
-
+    private ActionBar mActionBar;
 
 
     @Override
@@ -54,7 +56,9 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
         ButterKnife.bind(this);
         ActionBar actionBar = this.getSupportActionBar();
         if (actionBar != null) {
+            mActionBar = actionBar;
             actionBar.setDisplayHomeAsUpEnabled(true);
+
         }
         if (findViewById(R.id.tablet_layout) != null) {
             mTwoPane = true;
@@ -63,7 +67,9 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
         saveScrollPosition(savedInstanceState);
         if (savedInstanceState == null) {
             Recipe recipe = getIntent().getParcelableExtra(RECIPE_KEY);
+
             if (recipe != null) {
+                mRecipeName = recipe.getName();
                 IngredientsFragment ingredientsFragment = new IngredientsFragment();
                 mIngredients = (ArrayList<Ingredient>) recipe.getIngredients();
                 ingredientsFragment.setIngredients(recipe.getIngredients());
@@ -79,8 +85,10 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
             }
         } else {
             mSteps = savedInstanceState.getParcelableArrayList(STEPS_LIST_KEY);
-            mIngredients= savedInstanceState.getParcelableArrayList(INGREDIENTS_LIST_KEY);
+            mIngredients = savedInstanceState.getParcelableArrayList(INGREDIENTS_LIST_KEY);
+            mRecipeName = savedInstanceState.getString(RECIPE_NAME_KEY);
         }
+        mActionBar.setTitle(mRecipeName);
     }
 
     private void saveScrollPosition(final Bundle savedInstanceState) {
@@ -115,7 +123,7 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
     }
 
    private void createWidget(){
-       
+
        String  ingredientsList ="";
        StringBuilder sb = new StringBuilder();
        for (int i = 0; i < mIngredients.size(); i++) {
@@ -131,9 +139,10 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
        AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(this);
        RemoteViews remoteViews = new RemoteViews(this.getPackageName(), R.layout.baking_app_widget);
        ComponentName thisWidget = new ComponentName(this, BakingAppWidget.class);
+       remoteViews.setTextViewText(R.id.appwidget_head_text, mRecipeName);
        remoteViews.setTextViewText(R.id.appwidget_text, ingredientsList);
        appWidgetManager.updateAppWidget(thisWidget, remoteViews);
-       Toast.makeText(this, mWigetToastString,
+       Toast.makeText(this, mWidgetToastString,
                Toast.LENGTH_LONG).show();
     }
 
@@ -142,6 +151,7 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
         super.onSaveInstanceState(outState);
         int ScrollPos = mScrollView.getScrollY();
         outState.putInt(SCROLL_POSITION_KEY, ScrollPos);
+        outState.putString(RECIPE_NAME_KEY, mRecipeName);
         outState.putParcelableArrayList(STEPS_LIST_KEY, mSteps);
         outState.putParcelableArrayList(INGREDIENTS_LIST_KEY, mIngredients);
     }
@@ -152,14 +162,19 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
             loadFragmentsForDetailPane(step);
         } else {
             Intent recipeDetailIntent = new Intent(this, RecipeDetailActivity.class);
-            recipeDetailIntent.putExtra(RecipeDetailActivity.STEP_KEY, step);
             recipeDetailIntent.putExtra(RecipeDetailActivity.STEPS_KEY, mSteps);
+            recipeDetailIntent.putExtra(RecipeDetailActivity.STEP_POSITION_KEY, getStepPos(step));
             startActivity(recipeDetailIntent);
         }
     }
 
+    private int getStepPos(Step step) {
+        return mSteps.indexOf(step);
+    }
+
     void loadFragmentsForDetailPane(Step step) {
         String URLString = step.getVideoURL();
+        String thumbnailUlrString = step.getThumbnailURL();
         String description = step.getDescription();
         FragmentManager fragmentManager = getSupportFragmentManager();
         Fragment instructionsFragmentOld = fragmentManager.findFragmentByTag(INSTRUCTION_TAG);
@@ -169,27 +184,50 @@ public class RecipeActivity extends AppCompatActivity implements StepsFragment.O
             fragmentManager.beginTransaction()
                     .add(R.id.instruction_layout, instructionsFragment, INSTRUCTION_TAG).commit();
         } else {
-            fragmentManager.beginTransaction()
+            fragmentManager.beginTransaction().setCustomAnimations(android.R.anim.fade_out, android.R.anim.fade_in)
                     .replace(R.id.instruction_layout, instructionsFragment, INSTRUCTION_TAG).commit();
         }
-
         Fragment videoFragmentOld = fragmentManager.findFragmentByTag(VIDEO_TAG);
+        Fragment thumbnailFragmentOld = fragmentManager.findFragmentByTag(THUMBNAIL_TAG);
+        //Check if we have a video valid url
         if (!URLString.equals("")) {
             VideoFragment videoFragment = new VideoFragment();
             videoFragment.setVideoUrl(URLString);
             videoFragment.setIsTwoPane(mTwoPane);
+            //check if thumbnailFragment is showing if so remove
+            if (thumbnailFragmentOld != null) {
+                fragmentManager.beginTransaction()
+                        .remove(thumbnailFragmentOld).commit();
+            }
+            //If there is no videoFragment add one
             if (videoFragmentOld == null) {
                 fragmentManager.beginTransaction()
                         .add(R.id.video_layout, videoFragment, VIDEO_TAG).commit();
             } else {
-                fragmentManager.beginTransaction()
+                //if there is a videoFragment replace it with the new
+                fragmentManager.beginTransaction().setCustomAnimations(android.R.anim.fade_out, android.R.anim.fade_in)
                         .replace(R.id.video_layout, videoFragment, VIDEO_TAG).commit();
             }
         } else {
+            // no valid video url check and remove any videoFragments
             if (videoFragmentOld != null) {
                 fragmentManager.beginTransaction()
                         .remove(videoFragmentOld).commit();
+                //no video lets load thumbnail fragment
+            }
+            ThumbnailFragment thumbnailFragment = new ThumbnailFragment();
+             thumbnailFragment.setThumbnailUlrString(thumbnailUlrString);
+
+            //If there is no thumbnailFragment add one
+            if (thumbnailFragmentOld == null) {
+                fragmentManager.beginTransaction()
+                        .add(R.id.video_layout, thumbnailFragment, THUMBNAIL_TAG).commit();
+            } else {
+                //if there is a thumbnailFragment replace it with the new
+                fragmentManager.beginTransaction().setCustomAnimations(android.R.anim.fade_out, android.R.anim.fade_in)
+                        .replace(R.id.video_layout, thumbnailFragment, THUMBNAIL_TAG).commit();
             }
         }
     }
+
 }

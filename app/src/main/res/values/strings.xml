@@ -17,8 +17,12 @@
 
     <string name="recipe_url" translatable="false">https://d17h27t6h515a5.cloudfront.net/topher/2017/May/59121517_baking/baking.json</string>
 
-    <string name="appwidget_text">The baking app widget</string>
+    <string name="appwidget_text">Tap set widget from a recipe to set the ingredints list here </string>
+
+    <string name="appwidget_header"> Baking App </string>
 
     <string name="add_widget">Add widget</string>
+
+    <string name="steps_bar_title">Steps</string>
 
 </resources>

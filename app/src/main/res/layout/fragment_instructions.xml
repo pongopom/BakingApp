@@ -17,8 +17,6 @@
             android:id="@+id/instructions_fragment_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:drawableStart="@drawable/placeholder"
-            android:drawablePadding="4dip"
             android:layout_margin="8dp"
             tools:text="Ingredients go here" />
 

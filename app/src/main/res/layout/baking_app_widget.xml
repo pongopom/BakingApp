@@ -4,18 +4,35 @@
     android:background="@color/colorPrimaryDark"
     android:padding="@dimen/widget_margin">
 
+
+
+    <TextView
+        android:id="@+id/appwidget_head_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:text="@string/appwidget_header"
+        android:layout_margin="8dp"
+        android:textAlignment="center"
+        android:textColor="@android:color/white"
+        android:textStyle="bold" />
+
     <TextView
         android:id="@+id/appwidget_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_below="@+id/appwidget_head_text"
         android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_margin="8dp"
         android:background="@color/colorPrimary"
         android:contentDescription="@string/appwidget_text"
         android:text="@string/appwidget_text"
         android:textColor="@color/colorPrimaryLight"
         android:textSize="14sp"
+        android:layout_margin="8dp"
         android:textStyle="bold|italic" />
+
+
+
 
 </RelativeLayout>
