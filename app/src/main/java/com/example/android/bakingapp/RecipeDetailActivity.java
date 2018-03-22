@@ -24,12 +24,12 @@ import butterknife.OnClick;
 
 public class RecipeDetailActivity extends AppCompatActivity {
     //keys used by intent
-    public static final String STEP_KEY = "step_key";
     public static final String STEPS_KEY = "steps_key";
     public static final String STEP_POSITION_KEY = "step_position_key";
     //keys used for saved instance state
     private static final String STEPS_LIST_KEY = "steps_list_key";
     private static final String STEP_ID_KEY = "step_id_key";
+    private static final String STEP_KEY = "step_key";
     //fragment tags
     private static final String INSTRUCTION_TAG = "instruction_tag";
     private static final String VIDEO_TAG = "video_tag";
@@ -66,7 +66,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
         if (savedInstanceState == null) {
             Intent intent = getIntent();
             mSteps = intent.getParcelableArrayListExtra(STEPS_KEY);
-            mStepPosition = intent.getIntExtra("poskey",0);
+            mStepPosition = intent.getIntExtra(STEP_POSITION_KEY,0);
             Step step = mSteps.get(mStepPosition);
             if (step != null) {
                 loadFragments(step);
@@ -74,7 +74,7 @@ public class RecipeDetailActivity extends AppCompatActivity {
         } else {
             mSteps = savedInstanceState.getParcelableArrayList(STEPS_LIST_KEY);
             mStepId = savedInstanceState.getInt(STEP_ID_KEY);
-            mStepPosition = savedInstanceState.getInt("step_pos");
+            mStepPosition = savedInstanceState.getInt(STEP_KEY);
             setUpStepNav();
         }
     }
@@ -185,6 +185,6 @@ public class RecipeDetailActivity extends AppCompatActivity {
         super.onSaveInstanceState(outState);
         outState.putInt(STEP_ID_KEY, mStepId);
         outState.putParcelableArrayList(STEPS_LIST_KEY, mSteps);
-        outState.putInt(STEP_POSITION_KEY,mStepPosition);
+        outState.putInt(STEP_KEY,mStepPosition);
     }
 }
